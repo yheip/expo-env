@@ -27,13 +27,17 @@ var passedEnv = options.env || "development";
 
 prompt.start();
 
-if (!fs.existsSync(path.join(process.cwd(), options.configFile))) {
+// ConfigFile
+const envConfigFile = passedEnv + ".app.json"
+const envConfigFilePath = path.join(process.cwd(), envConfigFile)
+if (!fs.existsSync(envConfigFilePath)) {
+  console.log(`${envConfigFile} not found`);
   //Ask to create a default config file to work with
   console.log("No config file exists to update the environment variables into.");
 
   prompt.get([{
     name: 'createFile',
-    description: 'Would you like to create one now?',
+    description: 'Would you like to create one from existing app.json?',
     type: 'string',
     required: true
   }], function (err, result) {
@@ -52,7 +56,7 @@ if (!fs.existsSync(path.join(process.cwd(), options.configFile))) {
 }
 
 function buildConfig(env) {
-  var fpath = path.join(process.cwd(), options.configFile),
+  var fpath = envConfigFile,
     envFilePath = path.join(process.cwd(), options.configPath,  env + "." + options.template),
     envFile,
     targetFile,
@@ -66,7 +70,7 @@ function buildConfig(env) {
   envFile = require(envFilePath) || {};
 
   if (fs.existsSync(fpath)) {
-    config = JSON.parse(fs.readFileSync(path.join(process.cwd(), options.configFile), 'utf8')) || {};
+    config = JSON.parse(fs.readFileSync(envConfigFile, 'utf8')) || {};
     config.expo = config.expo || {};
     config.expo.extra = envFile;
     fs.writeFileSync(path.join(process.cwd(), options.outputFile), JSON.stringify(config, null, 2), 'utf8');
@@ -75,5 +79,5 @@ function buildConfig(env) {
 
 function createConfigFile() {
   var appJson = fs.readFileSync(path.join(process.cwd(), options.outputFile), "utf8");
-  fs.writeFileSync(path.join(process.cwd(), options.configFile), appJson, 'utf8');
+  fs.writeFileSync(envConfigFile, appJson, 'utf8');
 }
